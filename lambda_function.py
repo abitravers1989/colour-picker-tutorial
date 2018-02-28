@@ -8,6 +8,7 @@ http://amzn.to/1LGWsLG
 """
 
 from __future__ import print_function
+import random
 
 
 # --------------- Helpers that build all of the responses ----------------------
@@ -50,13 +51,13 @@ def get_welcome_response():
 
     session_attributes = {}
     card_title = "Welcome"
-    speech_output = "Welcome to the Alexa Skills Kit sample. " \
-                    "Please tell me your favorite color by saying, " \
-                    "my favorite color is red"
+    speech_output = "Welcome to the Pair Picker. " \
+                    "I WILL tell you who to pair with today. " \
+                    "I promise, it will blow your mind " 
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Please tell me your favorite color by saying, " \
-                    "my favorite color is red."
+    reprompt_text = "Please tell me your favorite pair by saying, " \
+                    "my favorite pair is James."
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -72,9 +73,13 @@ def handle_session_end_request():
         card_title, speech_output, None, should_end_session))
 
 
-def create_favorite_color_attributes(favorite_color):
-    return {"favoriteColor": favorite_color}
+# def create_favorite_color_attributes(favorite_color):
+#     return {"favoriteColor": favorite_color}
 
+def create_favorite_color_attributes(favorite_color):
+    team_members = ["James", "Freddie", "Abi", "Connie", "Jeremy"] # {"Name": favorite_color}
+    # team_members.append({"favoriteColor" : favorite_color})
+    return {"favoriteColor": favorite_color, "teamMembers": team_members}
 
 def set_color_in_session(intent, session):
     """ Sets the color in the session and prepares the speech to reply to the
@@ -85,21 +90,21 @@ def set_color_in_session(intent, session):
     session_attributes = {}
     should_end_session = False
 
-    if 'Color' in intent['slots']:
-        favorite_color = intent['slots']['Color']['value']
+    if 'Pair' in intent['slots']:
+        favorite_color = intent['slots']['Pair']['value']
         session_attributes = create_favorite_color_attributes(favorite_color)
-        speech_output = "I now know your favorite color is " + \
+        speech_output = "I now know your favorite pair is " + \
                         favorite_color + \
-                        ". You can ask me your favorite color by saying, " \
-                        "what's my favorite color?"
-        reprompt_text = "You can ask me your favorite color by saying, " \
-                        "what's my favorite color?"
+                        ". You can ask me your favorite pair by saying, " \
+                        "what's my favorite pair?"
+        reprompt_text = "You can ask me your favorite pair by saying, " \
+                        "what's my favorite pair?"
     else:
-        speech_output = "I'm not sure what your favorite color is. " \
+        speech_output = "I'm not sure what your favorite pair is. " \
                         "Please try again."
-        reprompt_text = "I'm not sure what your favorite color is. " \
-                        "You can tell me your favorite color by saying, " \
-                        "my favorite color is red."
+        reprompt_text = "I'm not sure what your favorite pair is. " \
+                        "You can tell me your favorite pair by saying, " \
+                        "my favorite pair is james."
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
 
@@ -107,15 +112,23 @@ def set_color_in_session(intent, session):
 def get_color_from_session(intent, session):
     session_attributes = {}
     reprompt_text = None
+    speech_output = ""
+    
+    # speech_output = session.get('attributes').get('teamMembers').get('Name')
 
     if session.get('attributes', {}) and "favoriteColor" in session.get('attributes', {}):
+        speech_output = "Your pair for today is " + random.choice(session['attributes']['teamMembers'])
+        """ for k in session['attributes']['teamMembers']:
+            speech_output += k + " "
+            # if k == team_members[0][k]
         favorite_color = session['attributes']['favoriteColor']
-        speech_output = "Your favorite color is " + favorite_color + \
-                        ". Goodbye."
+    
+        speech_output += "Your favorite pair is " + favorite_color + \
+                        ". Goodbye." """
         should_end_session = True
     else:
-        speech_output = "I'm not sure what your favorite color is. " \
-                        "You can say, my favorite color is red."
+        speech_output = "I'm not sure what your favorite pair is. " \
+                        "You can say, my favorite pair is james."
         should_end_session = False
 
     # Setting reprompt_text to None signifies that we do not want to reprompt
@@ -155,9 +168,9 @@ def on_intent(intent_request, session):
     intent_name = intent_request['intent']['name']
 
     # Dispatch to your skill's intent handlers
-    if intent_name == "MyColorIsIntent":
+    if intent_name == "MyPairIsIntent":
         return set_color_in_session(intent, session)
-    elif intent_name == "WhatsMyColorIntent":
+    elif intent_name == "WhatsMyPairIntent":
         return get_color_from_session(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
         return get_welcome_response()
